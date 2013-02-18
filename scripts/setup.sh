@@ -20,16 +20,16 @@ apt-get autoremove hostapd
 cp $(dirname $0)/hostapd.conf /etc/hostapd/hostapd.conf
 
 # Update default SSID & password
-unset REPLY
-read -p 'Please enter SSID to create [rpiwifi]: '
-if [[ -z $REPLY ]]; then
-    sed -i "s/rpiwifi/$REPLY/" /etc/hostapd/hostapd.conf
+SSID=""
+read -p 'Please enter SSID to create [rpiwifi]: ' SSID
+if [[ -n $SSID ]]; then
+  sed -i "s/rpiwifi/$SSID/" /etc/hostapd/hostapd.conf
 fi
-unset REPLY
-while [[ -z $REPLY ]]; do
-    read -p 'Please enter a password to use for WPA security: '
+WPAPASS=""
+while [[ -z $WPAPASS ]]; do
+  read -p 'Please enter a password to use for WPA security: ' WPAPASS
 done
-sed -i "s/ChangeMe/$REPLY/" /etc/hostapd/hostapd.conf
+sed -i "s/ChangeMe/$WPAPASS/" /etc/hostapd/hostapd.conf
 
 # Add a startup script
 cp $(dirname $0)/init /etc/init.d/hostapd
