@@ -34,5 +34,52 @@ sed -i "s/ChangeMe/$REPLY/" /etc/hostapd/hostapd.conf
 # Add a startup script
 cp $(dirname $0)/init /etc/init.d/hostapd
 
+# Setup AP based on http://elinux.org/RPI-Wireless-Hotspot
+apt-get -y install udhcpd
+
+cat << EOF > /etc/udhcpd.conf
+start 192.168.42.2 # This is the range of IPs that the hostspot will give to client devices.
+end 192.168.42.20
+interface wlan0 # The device uDHCP listens on.
+remaining yes
+opt dns 8.8.8.8 4.2.2.2 # The DNS servers client devices will use.
+opt subnet 255.255.255.0
+opt router 192.168.42.1 # The Pi's IP address on wlan0 which we will set up shortly.
+opt lease 864000 # 10 day DHCP lease time in seconds
+EOF
+
+sed -E -i "s/(.*DHCPD_ENABLED)/# \1/" /etc/default/udhcpd
+
+sed -E -i "s/(.*allow-hotplug)/# \1/" /etc/network/interfaces
+sed -E -i "s/(.*wpa-roam)/# \1/" /etc/network/interfaces
+sed -E -i "s/(.*iface default)/# \1/" /etc/network/interfaces
+sed -E -i "s/(.*iface wlan0)/# \1/" /etc/network/interfaces
+
+cat << EOF >> /etc/network/interfaces
+iface wlan0 inet static
+  address 192.168.42.1
+  netmask 255.255.255.0
+
+up iptables-restore < /etc/iptables.ipv4.nat
+EOF
+
+echo 'DAEMON_CONF="/etc/hostapd/hostapd.conf"' > /etc/default/hostapd
+
+echo 'net.ipv4.ip_forward=1' >>  /etc/sysctl.conf
+
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -A FORWARD -i eth0 -o wlan0 -m state --state RELATED,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
+
+sh -c "iptables-save > /etc/iptables.ipv4.nat"
+
+
+
 # Start the hostapd service
 service hostapd restart
+service udhcpd restart
+
+# Start services on boot
+update-rc.d hostapd enable
+update-rc.d udhcpd enable
+
