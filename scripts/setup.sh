@@ -80,6 +80,6 @@ service hostapd restart
 service udhcpd restart
 
 # Start services on boot
-update-rc.d hostapd enable
-update-rc.d udhcpd enable
+update-rc.d hostapd defaults
+update-rc.d udhcpd defaults
 
