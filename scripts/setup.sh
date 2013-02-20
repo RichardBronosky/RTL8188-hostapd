@@ -34,6 +34,9 @@ sed -i "s/ChangeMe/$WPAPASS/" /etc/hostapd/hostapd.conf
 # Add a startup script
 cp $(dirname $0)/init /etc/init.d/hostapd
 
+# Set ip address immediately
+ifconfig wlan0 192.168.42.1
+
 # Setup AP based on http://elinux.org/RPI-Wireless-Hotspot
 apt-get -y install udhcpd
 
