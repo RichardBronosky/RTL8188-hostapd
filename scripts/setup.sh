@@ -62,8 +62,9 @@ cat << EOF >> /etc/network/interfaces
 iface wlan0 inet static
   address 192.168.42.1
   netmask 255.255.255.0
+  up iptables-restore < /etc/iptables.ipv4.nat
 
-up iptables-restore < /etc/iptables.ipv4.nat
+auto eth0 wlan0
 EOF
 
 echo 'DAEMON_CONF="/etc/hostapd/hostapd.conf"' > /etc/default/hostapd
