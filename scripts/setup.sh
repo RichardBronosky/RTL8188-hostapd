@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+
+# This script looks for the following environment variables and prompts if they are not present:
+# SSID
+# WPAPASS
+
 # This process is based on http://www.jenssegers.be/blog/43/Realtek-RTL8188-based-access-point-on-Raspberry-Pi
 
 ## No bash script should be considered releasable until it has this! ##
@@ -20,13 +25,11 @@ apt-get autoremove hostapd
 cp $(dirname $0)/hostapd.conf /etc/hostapd/hostapd.conf
 
 # Update default SSID & password
-SSID=""
-read -p 'Please enter SSID to create [rpiwifi]: ' SSID
+[[ -z ${SSID:-} ]] && read -p 'Please enter SSID to create [rpiwifi]: ' SSID
 if [[ -n $SSID ]]; then
   sed -i "s/rpiwifi/$SSID/" /etc/hostapd/hostapd.conf
 fi
-WPAPASS=""
-while [[ -z $WPAPASS ]]; do
+while [[ -z ${WPAPASS:-} ]]; do
   read -p 'Please enter a password to use for WPA security: ' WPAPASS
 done
 sed -i "s/ChangeMe/$WPAPASS/" /etc/hostapd/hostapd.conf
